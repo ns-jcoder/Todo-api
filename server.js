@@ -1,6 +1,7 @@
 //server.js
 var express = require('express');
 var bodyParser = require('body-parser');
+var _ = require('underscore');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -23,14 +24,7 @@ app.get('/todos/:id',function (req, res){
 	//res.send('Asking for todo with id of '+req.params.id);
 	var matchedTodo;
 	var todoId = parseInt(req.params.id,10);
-	//Iterate the array and send it back
-	// else send 404 using res.status(404).send();
-
-	todos.forEach(function (currentArrElt){
-		if(todoId === currentArrElt.id){
-			matchedTodo = currentArrElt;
-		}
-	});
+	matchedTodo = _.findWhere(todos,{id: todoId});
 
 	if(matchedTodo)
 	{
@@ -45,7 +39,13 @@ app.get('/todos/:id',function (req, res){
 
 // POST /todos
 app.post('/todos', function (req, res){
-	var body = req.body;
+	var body = _.pick(req.body, 'description', 'completed');
+
+	if(!_.isBoolean(body.completed) || 	!_.isString(body.description) || body.description.trim().length === 0){
+		return res.status(400).send();
+	}
+
+	body.description = body.description.trim();
 	//add id field
 	//add the elt to todos array
 	body.id =  todoNextId++;
